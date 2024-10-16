@@ -1,4 +1,4 @@
-from src.Graph import assign
+from src.task1 import assign
 import unittest
 
 class TestAssign(unittest.TestCase):
