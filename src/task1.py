@@ -268,12 +268,21 @@ class Graph:
 class Network:
     """
     Class description:  
-    Represents a flow network for assigning participants to activities based on preferences.
+    Represents a flow network for assigning participants to activities based on their preferences.  
+    This class models the problem of allocating participants to activities while ensuring that:
+    - Each participant can express varying levels of interest (experienced or not).
+    - Each activity has a defined capacity that dictates how many participants can be assigned.
+    - Experienced participants are prioritised over non-experienced ones when first assigning to activities.
+    
+    The flow network is constructed using a directed graph where:
+    - Nodes represent the source, participant nodes, leader and non-leader nodes, activities, and a sink.
+    - Edges represent the allowable assignments between these nodes with associated capacities.
+
     """
     def __init__(self, preferences: list, places: list) -> None:
         """
         Function description:  
-        Initializes the Network class with preferences, activity capacities, and constructs the flow network.
+        Initialises the Network class with preferences, activity capacities, and constructs the flow network.
 
         Input:  
         - preferences: List of participant preferences for activities.  
@@ -281,13 +290,17 @@ class Network:
 
         Output: None  
 
-        Time complexity: O(1)  
-        Time complexity analysis:  
-        - The function initializes attributes without complex operations.
+        Time complexity: O(N^2)
+        - N is the number of participants
 
-        Space complexity: O(N + M)  
+        Time complexity analysis:  
+        - The init calls the create_flow_network method which has a complexity of O(N^2)
+
+        Space complexity: O(N^2)
+        - N is the number of participants
+
         Space complexity analysis:  
-        - Memory is required for storing preferences, places, and network data.
+        - Calls the create_flow_network method which has a complexity of O(N^2)
         """
         # Initialize with participants' preferences and activity places.
         self.preferences = preferences
@@ -296,6 +309,34 @@ class Network:
         self.edges = self.create_flow_network()  # Create the flow network.
 
     def create_flow_network(self):
+        """
+        Function description:  
+        Builds the complete flow network by constructing all necessary edges between nodes. This method combines all the other
+        smaller methods relating to the construction of the flow network. It constructs the network in the following way:
+        Adds edges from source to participant nodes
+        Adds edges from participant to leader/non-leader nodes
+        Adds edges from leader/non-leader nodes to activity nodes
+        Adds edges from activity nodes to sink node
+        
+        Input: None
+
+        Output:  
+        - List of tuples representing the edges in the flow network.
+
+        Time complexity: O(N^2)
+        - N is the number of participants
+
+        Time complexity analysis:  
+        - Adding preference-based edges involves iterating over participants N and activities M.
+        - Since we know that M is at most N/2, the complexity becomes O(N * N/2) which comes from the add_preference_edges method.
+        - Therefore the complexity of this method is O(N^2).
+
+        Space complexity: O(N^2)  
+        - N is the number of participants
+
+        Space complexity analysis:  
+        - Space complexity of the add_preference_edges method is O(N^2) as well
+        """
         # Build the flow network by adding all necessary edges.
         edges = []
         num_participants = len(self.preferences)  # Total number of participants.
@@ -312,10 +353,51 @@ class Network:
         return edges
 
     def add_participant_edges(self, num_participants: int):
+        """
+        Function description:  
+        Creates edges from the source to each participant with capacity 1.
+
+        Input:  
+        - num_participants: Integer representing the total number of participants.
+
+        Output:  
+        - List of tuples representing source-to-participant edges.
+
+        Time complexity: O(N)
+        - N is the number of participants
+
+        Time complexity analysis:  
+        - Each participant is processed exactly once.
+
+        Space complexity: O(N)  
+        - N is the number of participants
+
+        Space complexity analysis:  
+        - O(N) space is used to store the participant edges.
+        """ 
         # Create edges from the source to each participant.
         return [(0, participant + 1, 1) for participant in range(num_participants)]
 
     def calculate_offsets(self, num_participants: int, num_activities: int):
+        """
+        Function description:  
+        Calculates offsets to correctly index different types of nodes in the flow network.
+
+        Input:  
+        - num_participants: Number of participants.
+        - num_activities: Number of activities.
+
+        Output:  
+        - Tuple containing the offsets for leader, non-leader, activity nodes, and the sink.
+
+        Time complexity: O(1)  
+        Time complexity analysis:  
+        - Simple arithmetic operations are performed.
+
+        Space complexity: O(1)  
+        Space complexity analysis:  
+        - No additional space is required.
+        """
         # Calculate the offsets for different types of nodes and the sink.
         leader_offset = num_participants + 1
         non_leader_offset = leader_offset + num_activities
@@ -325,10 +407,61 @@ class Network:
         return leader_offset, non_leader_offset, activity_offset, sink
 
     def track_leader_non_leader_nodes(self, num_activities: int, leader_offset: int, non_leader_offset: int):
+        """
+        Function description:  
+        Tracks and stores the leader and non-leader nodes for each activity.
+
+        Input:  
+        - num_activities: Number of activities.
+        - leader_offset: Index offset for leader nodes.
+        - non_leader_offset: Index offset for non-leader nodes.
+
+        Output: None  
+
+        Time complexity: O(M)  
+        - M is the number of activities
+
+        Time complexity analysis:  
+        - Each activity is processed once.
+
+        Space complexity: O(M)  
+        - M is the number of activities
+
+        Space complexity analysis:  
+        - O(M) space is used to store the leader and non-leader nodes.
+        """
         # Store the leader and non-leader nodes for each activity.
         self.activity_nodes = [(leader_offset + i, non_leader_offset + i) for i in range(num_activities)]
 
     def add_preference_edges(self, leader_offset, non_leader_offset):
+        """
+        Function description:  
+        Creates edges from participants to leader or non-leader nodes based on their preferences.
+
+        Input:  
+        - leader_offset: Index offset for leader nodes.
+        - non_leader_offset: Index offset for non-leader nodes.
+
+        Output:  
+        - List of tuples representing preference-based edges.
+
+        Time complexity: O(N^2)  
+        - N is the number of participants
+
+        Time complexity analysis:  
+        - For each participant N, their preferences for all activities M are processed.
+        - From the spec we are told that M is at most N/2.
+        - There is a nested for loop which iterates over the all activities for each participant, therefore the complexity 
+        becomes O(N * N/2).
+        - We can simplify this to O(N^2)
+
+        Space complexity: O(N^2)  
+        - N is the number of participants.
+
+        Space complexity analysis:  
+        - For each participant, the max number of edges they can have is if they are interested in all activities.
+        - Therefore this takes up O(N * M) space which becomes O(N^2)
+        """
         # Create edges from participants to leader or non-leader nodes based on preferences.
         edges = []
         for participant, preference in enumerate(self.preferences):
@@ -340,10 +473,59 @@ class Network:
         return edges
 
     def add_leader_activity_edges(self, num_activities: int, leader_offset: int, activity_offset: int):
+        """
+        Function description:  
+        Creates edges from leader nodes to activity nodes with capacity 2.
+
+        Input:  
+        - num_activities: Number of activities.
+        - leader_offset: Index offset for leader nodes.
+        - activity_offset: Index offset for activity nodes.
+
+        Output:  
+        - List of tuples representing leader-to-activity edges.
+
+        Time complexity: O(M)  
+        - M is the number of activities
+
+        Time complexity analysis:  
+        - Each activity is processed once.
+
+        Space complexity: O(M)  
+        - M is the number of activities
+
+        Space complexity analysis:  
+        - O(M) space is used to store the edges.
+        """
         # Create edges from leader nodes to activity nodes with capacity 2.
         return [(leader_offset + i, activity_offset + i, 2) for i in range(num_activities)]
 
     def add_non_leader_activity_edges(self, num_activities, non_leader_offset, activity_offset, leader_offset):
+        """
+        Function description:  
+        Creates edges from non-leader nodes to activity nodes with the remaining capacity.
+
+        Input:  
+        - num_activities: Number of activities.
+        - non_leader_offset: Index offset for non-leader nodes.
+        - activity_offset: Index offset for activity nodes.
+        - leader_offset: Index offset for leader nodes.
+
+        Output:  
+        - List of tuples representing non-leader-to-activity and leader-to-non-leader edges.
+
+        Time complexity: O(M)  
+        - M is the number of activities
+
+        Time complexity analysis:  
+        - Each activity is processed once.
+
+        Space complexity: O(M)  
+        - M is the number of activities
+
+        Space complexity analysis:  
+        - O(M) space is used to store the edges.
+        """
         # Create edges from non-leader nodes to activity nodes with remaining capacity.
         edges = []
         for activity in range(num_activities):
@@ -355,11 +537,70 @@ class Network:
         return edges
 
     def add_activity_sink_edges(self, num_activities: int, activity_offset: int, sink: int):
+        """
+        Function description:  
+        Creates edges from activity nodes to the sink with capacities equal to the activity's capacity in the list of places.
+
+        Input:  
+        - num_activities: Number of activities.
+        - activity_offset: Index offset for activity nodes.
+        - sink: Index of the sink node.
+
+        Output:  
+        - List of tuples representing activity-to-sink edges.
+
+        Time complexity: O(M)  
+        - M is the number of activities
+
+        Time complexity analysis:  
+        - Each activity is processed once.
+
+        Space complexity: O(M)  
+        - M is the number of activities
+
+        Space complexity analysis:  
+        - O(M) space is used to store the edges.
+        """
         # Create edges from activity nodes to the sink.
         return [(activity_offset + i, sink, self.places[i]) for i in range(num_activities)]
 
 
 def assign(preferences: list, places: list):
+    """
+    Function description:
+    Assigns participants to activities based on their preferences and available places in a flow network model.
+    This function builds a flow network from the participants' preferences and the activity capacities, 
+    then determines the optimal assignment of participants to activities.
+
+    Input:
+    - preferences: List of lists, where each inner list represents the preferences of a participant 
+      for different activities. Each preference can take the following values:
+        - 2: Participant is experienced and prefers the activity (can take on a leadership role).
+        - 1: Participant is interested but not experienced in the activity.
+        - 0: Participant does not prefer the activity.
+    - places: List of integers representing the maximum capacity of participants that each activity can accommodate.
+
+    Output:
+    - A list of lists where each inner list contains the indices of participants assigned to the corresponding activity. 
+      If all participants are assigned to activities according to their preferences and the available places, 
+      the result will include all assigned participants. If not all participants can be assigned, the function returns None.
+
+    Time complexity: O(N^2 + M)
+    - N is the number of participants.
+    - M is the number of activities.
+    
+    Time complexity analysis:
+    - The construction of the flow network and the execution of the max flow algorithm dominate the time complexity. 
+      The Network class's initialisation and edge construction methods collectively contribute O(N^2) complexity.
+      The complexity of running the max flow algorithm can vary based on the implementation details of the Graph class.
+      
+    Space complexity: O(N + M)
+    - The space complexity is determined by the storage of edges in the network and the resulting assignments.
+
+    Space complexity analysis:
+    - The method utilizes space to store the network's edges and the results of participant assignments. The maximum 
+      space required is proportional to the number of participants and activities.
+    """
     network = Network(preferences, places)  # Build the flow network.
     graph = Graph(network.edges)  # Run max flow on the network.
 
