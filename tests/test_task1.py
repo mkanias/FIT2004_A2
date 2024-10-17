@@ -1,4 +1,4 @@
-from src.task1 import assign
+from src.assignment2 import assign
 import unittest
 
 class TestAssign(unittest.TestCase):

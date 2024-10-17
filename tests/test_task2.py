@@ -1,4 +1,4 @@
-from src.task2 import SpellChecker
+from src.assignment2 import SpellChecker
 import unittest
 
 class TestSpellChecker(unittest.TestCase):
