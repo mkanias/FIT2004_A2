@@ -174,12 +174,16 @@ class Graph:
         Output:  
         - The computed maximum flow value.
 
-        Time complexity: O(V * E^2)  
+        Time complexity: O(V * E^2) || O(E * F) 
         - V is the number of vertices, and E is the number of edges.
+        - F is the max flow of the network
 
         Time complexity analysis:
         - Each BFS call takes O(V + E). In the worst case, the algorithm performs E augmenting 
         path searches for every unit of flow added, leading to a time complexity of O(V * E^2).
+        - Alternatively, the max number of augmenting path searches needed is F and if each search with BFS
+        takes O(V + E), then the complexity becomes O(F * (E + V))
+        - Since we know that E will always be larger than V, the complexity simplifies to O(F * E)
 
         Space complexity: O(V + E)  
         - V is the number of vertices represented by self.vertices.
@@ -569,15 +573,14 @@ def assign(preferences: list, places: list):
     """
     Function description:
     Assigns participants to activities based on their preferences and available places in a flow network model.
-    This function builds a flow network from the participants' preferences and the activity capacities, 
-    then determines the optimal assignment of participants to activities.
+    This function builds a flow network from the participants' preferences and the activity capacities by first retrieving all the
+    network edges through the instatiation of a network object with the preferences and places as inputs. One the edges are constructed,
+    a graph object is instatiated with these network edges. As part of the instatiation of the graph object with the network's edges,
+    the fordfulkerson method is run on this network and the optimal assignment of participants to activities is calculated.
 
     Input:
     - preferences: List of lists, where each inner list represents the preferences of a participant 
-      for different activities. Each preference can take the following values:
-        - 2: Participant is experienced and prefers the activity (can take on a leadership role).
-        - 1: Participant is interested but not experienced in the activity.
-        - 0: Participant does not prefer the activity.
+      for different activities.
     - places: List of integers representing the maximum capacity of participants that each activity can accommodate.
 
     Output:
@@ -585,21 +588,27 @@ def assign(preferences: list, places: list):
       If all participants are assigned to activities according to their preferences and the available places, 
       the result will include all assigned participants. If not all participants can be assigned, the function returns None.
 
-    Time complexity: O(N^2 + M)
+    Time complexity: O(N^3)
     - N is the number of participants.
-    - M is the number of activities.
     
     Time complexity analysis:
     - The construction of the flow network and the execution of the max flow algorithm dominate the time complexity. 
-      The Network class's initialisation and edge construction methods collectively contribute O(N^2) complexity.
-      The complexity of running the max flow algorithm can vary based on the implementation details of the Graph class.
+    - The Network class's initialisation and edge construction methods collectively contribute O(N^2) complexity.
+    - The complexity of running the max flow algorithm which is run in the instatiation of the Graph class is O(F * E).
+    - In our case, since there are N participants, and each one must be allocated to an activity, we know that the flow
+    will always be N.
+    - We also know that the number of edges in the network in the worst case will be O(N * 3M) which can be simplified
+    to: O(N^2)
+    - Therefore, the compelxity of running the FordFulkerson method in the graph class will be O(N^3).
+    - If we sum the complexity of th edge construction and the max flow traversal, the complexity is O(N^2 + N^3).
+    - Since N^3 is the dominating term here, the total time complexity becomes O(N^3)
       
-    Space complexity: O(N + M)
-    - The space complexity is determined by the storage of edges in the network and the resulting assignments.
+    Space complexity: O(N^2)
+    - N is the number of participants.
 
     Space complexity analysis:
-    - The method utilizes space to store the network's edges and the results of participant assignments. The maximum 
-      space required is proportional to the number of participants and activities.
+    - The method utilises space to store the network's edges and the results of participant assignments. The maximum 
+    space required is the space for the network edges which is N^2.
     """
     network = Network(preferences, places)  # Build the flow network.
     graph = Graph(network.edges)  # Run max flow on the network.
