@@ -153,7 +153,10 @@ class Trie:
         """
         Function description:  
         Searches for words matching a given input_word and returns top-ranked candidates. Traverses each valid node starting from the
-        deepest one (most chars in common with input_word) and returns a list of words in ranked order.
+        deepest one (most chars in common with input_word) and returns a list of words in ranked order. This method leverages the 
+        already organised insertion of the words in the trie. Because each TrieNode has a list of the top ranked words, all this method
+        must do is get the top ranked words form the deepest node/nodes until it finds 3 words that contain the same prefix as the one 
+        in the query.
 
         Input:  
             input_word (str): The input_word to search for.
@@ -211,7 +214,7 @@ class Trie:
                     break  # Exit the inner loop
 
 
-        # If the input_word is a valid word, return an empty list
+        # If the input_word already exits in the trie, return an empty list
         if input_word in candidates:
             return []
 
@@ -355,4 +358,4 @@ if __name__ == "__main__":
     filename = "src/text_files_q2/test_case_2.txt"  # Input file with words
 
     spellchecker = SpellChecker(filename)  # Initialise the spell checker
-    print(spellchecker.check('IDJM'))  # Check for suggestions based on input
+    print(spellchecker.check('INDKNJJNINJDNAK'))  # Check for suggestions based on input

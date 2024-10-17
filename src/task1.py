@@ -3,12 +3,12 @@ class Graph:
     Class description:  
     The Graph class implements the construction of a flow network and computes the maximum flow 
     using the Ford-Fulkerson algorithm. It also provides functionality to reconstruct the graph 
-    to display only forward edges that were fully utilized in the flow.
+    to display only forward edges that were fully utilised in the flow.
     """
     def __init__(self, edges: list):
         """
         Function description:  
-        Initializes the Graph with given edges, constructs an adjacency list, and computes 
+        Initialises the Graph with given edges, constructs an adjacency list, and computes 
         the max flow using Ford-Fulkerson.
 
         Input:  
@@ -16,18 +16,19 @@ class Graph:
 
         Output: None
 
-        Time complexity: O(V * E^2)
-        - V is the number of vertices represented by self.vertices.
+        Time complexity: O(E * F)
         - E is the number of edges in self.edges
+        - F is the max flow of the network
+
 
         Time complexity analysis:  
         - The init first uses the get_number_of_vertices_sink method which has complexity of O(E)
         - Then self.graph is initialised in O(V) time
         - add_edges method is called which has complexity O(E)
-        - FordFulkerson method is then called with a complexity of O(V * E^2) .
+        - FordFulkerson method is then called with a complexity of O(E * F).
         - Finally, the reconstruct_graph method is called in O(V + E).
-        - Thus, the sum of all these complexities is: O(3*E + 2*V + V * E^2) 
-        - This can then be simplified to O(V * E^2)
+        - Thus, the sum of all these complexities is: O(3*E + 2*V + E * F) 
+        - This can then be simplified to O(E * F)
 
         Space complexity: O(V + E)
 
@@ -37,7 +38,7 @@ class Graph:
         - O(V): For the parent list used during BFS in Ford-Fulkerson.
         - O(E): Additional space for storing the reverse edges in the residual graph.
         """
-        # Initialize the graph with edges and set up vertices, source, and sink.
+        # Initialise the graph with edges and set up vertices, source, and sink.
         self.edges = edges
         self.vertices, self.source, self.sink = self.get_number_of_vertices_sink()
         # Create an adjacency list for storing the graph.
@@ -174,14 +175,12 @@ class Graph:
         Output:  
         - The computed maximum flow value.
 
-        Time complexity: O(V * E^2) || O(E * F) 
+        Time complexity: O(E * F) 
         - V is the number of vertices, and E is the number of edges.
         - F is the max flow of the network
 
         Time complexity analysis:
-        - Each BFS call takes O(V + E). In the worst case, the algorithm performs E augmenting 
-        path searches for every unit of flow added, leading to a time complexity of O(V * E^2).
-        - Alternatively, the max number of augmenting path searches needed is F and if each search with BFS
+        - The max number of augmenting path searches needed is F and if each search with BFS
         takes O(V + E), then the complexity becomes O(F * (E + V))
         - Since we know that E will always be larger than V, the complexity simplifies to O(F * E)
 
@@ -195,7 +194,7 @@ class Graph:
         """
         # Implement the Ford-Fulkerson algorithm to compute the max flow.
         parent = [-1] * self.vertices  # Store the augmenting path.
-        max_flow = 0  # Initialize the max flow.
+        max_flow = 0  # Initialise the max flow.
 
         while self.BFS(parent):  # Continue while there is an augmenting path.
             path_flow = float("Inf")  # Set path flow to infinity initially.
@@ -244,7 +243,7 @@ class Graph:
         - E is the number of edges in self.edges 
 
         Time complexity analysis:
-        - We visit each vertex once O(V) to initialize and traverse through its outgoing edges.  
+        - We visit each vertex once O(V) to initialise and traverse through its outgoing edges.  
         - For each vertex, we iterate over its adjacency list, which sums to E operations across all vertices.
         - Thus, the total time spent is proportional to the number of vertices and edges combined: O(V + E).  
         - This is an optimal traversal because every edge is processed exactly once.
@@ -306,7 +305,7 @@ class Network:
         Space complexity analysis:  
         - Calls the create_flow_network method which has a complexity of O(N^2)
         """
-        # Initialize with participants' preferences and activity places.
+        # Initialise with participants' preferences and activity places.
         self.preferences = preferences
         self.places = places
         self.activity_nodes = []  # Store leader and non-leader nodes.
